@@ -24,6 +24,11 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.StringBuilder
+import android.widget.Toast
+
+import android.content.DialogInterface
+import androidx.appcompat.app.AlertDialog
+
 
 private const val TAG = "MainActivity2"
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
@@ -60,8 +65,7 @@ class MainActivity2 : AppCompatActivity(), SharedPreferences.OnSharedPreferenceC
         s = StringBuilder()
         foregroundOnlyBroadcastReceiver = ForegroundOnlyBroadcastReceiver()
 
-        sharedPreferences =
-            getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences(getString(R.string.preference_file_key), Context.MODE_PRIVATE)
 
         foregroundOnlyLocationButton = findViewById(R.id.start_button)
         outputTextView = findViewById(R.id.location_display_textView)
@@ -85,6 +89,9 @@ class MainActivity2 : AppCompatActivity(), SharedPreferences.OnSharedPreferenceC
 
         get_distance_button.setOnClickListener {
           val totalDistance =  foregroundOnlyLocationService?.getDistance()
+            if (totalDistance != null) {
+                alertDialog(totalDistance)
+            }
             s.append("\n${totalDistance.toDisplay()}")
             outputTextView.text = s.toString()
         }
@@ -186,7 +193,6 @@ class MainActivity2 : AppCompatActivity(), SharedPreferences.OnSharedPreferenceC
         grantResults: IntArray
     ) {
         Log.d(TAG, "onRequestPermissionResult")
-
         when (requestCode) {
             REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE -> when {
                 grantResults.isEmpty() ->
@@ -250,8 +256,24 @@ class MainActivity2 : AppCompatActivity(), SharedPreferences.OnSharedPreferenceC
             )
             val dis = intent.getDoubleExtra(ForegroundOnlyLocationService.DISTANCE, 0.0)
             if (location != null) {
-                logResultsToScreen("loc: ${location.toText()}+ dis: $dis")
+                logResultsToScreen("loc: ${location.toText()}+ dis: ${dis}")
             }
         }
+    }
+
+    private fun alertDialog(dis:Float) {
+        val dialog: AlertDialog.Builder = AlertDialog.Builder(this)
+        dialog.setMessage(dis.toString())
+        dialog.setTitle("Total Distance")
+        dialog.setNegativeButton("cancel",
+            DialogInterface.OnClickListener { dialog, which ->
+                Toast.makeText(
+                    applicationContext,
+                    "cancel is clicked",
+                    Toast.LENGTH_LONG
+                ).show()
+            })
+        val alertDialog: AlertDialog = dialog.create()
+        alertDialog.show()
     }
 }

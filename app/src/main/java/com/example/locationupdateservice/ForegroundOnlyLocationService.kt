@@ -25,7 +25,7 @@ class ForegroundOnlyLocationService : Service() {
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
-    var totalDistance = 0.0F
+
 
     // Used only for local storage of the last known location. Usually, this would be saved to your
     // database, but because this is a simplified sample without a full database, we only need the
@@ -38,9 +38,8 @@ class ForegroundOnlyLocationService : Service() {
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
 
         locationRequest = LocationRequest.create().apply {
-            interval = 2000
-            fastestInterval = 2000
-            smallestDisplacement=5F
+            interval = 5000
+            fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
@@ -54,7 +53,7 @@ class ForegroundOnlyLocationService : Service() {
                 if (serviceRunningInForeground) {
                     notificationManager.notify(
                         NOTIFICATION_ID,
-                        generateNotification(currentLocation, totalDistance)
+                        generateNotification(currentLocation, dis)
                     )
                 }
             }
@@ -70,10 +69,9 @@ class ForegroundOnlyLocationService : Service() {
             dis = dis + newdist
             Log.e(
                 "lat--",
-                "" + location.latitude.toString() + "//Long--" + location.longitude.toString() + "//Dis--" + dis + "km"
+                "" + location.latitude.toString() + "//Long--" + location.longitude.toString() + "//Dis--" + (dis)+ "km"
             )
             sendBrodcast(location, dis = dis.toDouble())
-
         } else {
             sendBrodcast(location, dis.toDouble())
         }
@@ -127,7 +125,7 @@ class ForegroundOnlyLocationService : Service() {
         Log.d(TAG, "onUnbind()")
         if (!configurationChange && SharedPreferenceUtil.getLocationTrackingPref(this)) {
             Log.d(TAG, "Start foreground service")
-            val notification = generateNotification(currentLocation, totalDistance)
+            val notification = generateNotification(currentLocation, dis)
             startForeground(NOTIFICATION_ID, notification)
             serviceRunningInForeground = true
         }
@@ -215,13 +213,13 @@ class ForegroundOnlyLocationService : Service() {
         val cancelIntent = Intent(this, ForegroundOnlyLocationService::class.java)
         cancelIntent.putExtra(EXTRA_CANCEL_LOCATION_TRACKING_FROM_NOTIFICATION, true)
 
-        val servicePendingIntent = PendingIntent.getService(
-            this, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val activityPendingIntent = PendingIntent.getActivity(
-            this, 0, launchActivityIntent, 0
-        )
+//        val servicePendingIntent = PendingIntent.getService(
+//            this, 0, cancelIntent, PendingIntent.FLAG_UPDATE_CURRENT
+//        )
+//
+//        val activityPendingIntent = PendingIntent.getActivity(
+//            this, 0, launchActivityIntent, 0
+//        )
 
         // 4. Build and issue the notification.
         // Notification Channel Id is ignored for Android pre O (26).
